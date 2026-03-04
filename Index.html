@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Process Intelligence Map</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --surface2: #f0f0f0;
+  --border: #e0e0e0;
+  --accent: #1a56db;
+  --teal: #0e7490;
+  --text: #111827;
+  --muted: #6b7280;
+  --green: #16a34a;
+  --amber: #d97706;
+  --red: #dc2626;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+}
+
+.app { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+/* HEADER */
+.header-tag {
+  font-size: 11px; letter-spacing: 0.12em; color: var(--accent);
+  text-transform: uppercase; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px; font-weight: 600;
+}
+.header-tag::before { content: ''; width: 24px; height: 2px; background: var(--accent); border-radius: 2px; }
+h1 { font-size: clamp(26px, 4vw, 40px); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 8px; }
+h1 span { color: var(--accent); }
+.subtitle { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 520px; margin-bottom: 36px; }
+
+/* SECTION LABEL */
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent);
+}
+
+/* CARD */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+
+.card-header {
+  display: flex; align-items: center; gap: 12px; padding: 16px 20px;
+  cursor: pointer; user-select: none; border-bottom: 1px solid transparent;
+}
+.card-header.open { border-bottom-color: var(--border); background: var(--bg); }
+
+.card-num {
+  width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+  background: var(--accent); color: #fff; font-weight: 800; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+}
+.card-title { font-weight: 600; font-size: 14px; flex: 1; }
+.card-person { font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 6px; }
+
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+.badge-teal { background: rgba(14,116,144,.1); color: var(--teal); border: 1px solid rgba(14,116,144,.25); }
+.badge-green { background: rgba(22,163,74,.1); color: var(--green); border: 1px solid rgba(22,163,74,.25); }
+.badge-amber { background: rgba(217,119,6,.1); color: var(--amber); border: 1px solid rgba(217,119,6,.25); }
+.badge-red { background: rgba(220,38,38,.1); color: var(--red); border: 1px solid rgba(220,38,38,.25); }
+
+.chevron { color: var(--muted); font-size: 12px; margin-left: 4px; flex-shrink: 0; transition: transform 0.2s; }
+.chevron.open { transform: rotate(180deg); }
+
+.card-body { padding: 20px; display: none; }
+.card-body.open { display: block; }
+
+/* FIELD GRID — always 2 cols, stack only on very small screens */
+.fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+@media (max-width: 400px) { .fgrid { grid-template-columns: 1fr; } }
+.fgrid .span2 { grid-column: 1 / -1; }
+
+.fg { display: flex; flex-direction: column; gap: 6px; }
+label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+input, textarea, select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-family: inherit; font-size: 14px; padding: 10px 14px;
+  width: 100%; outline: none; transition: border-color .2s;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+textarea { resize: vertical; min-height: 76px; }
+
+/* PILLS */
+.pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.tool-pill {
+  font-size: 12px; padding: 5px 12px; border-radius: 20px; cursor: pointer;
+  border: 1px solid var(--border); color: var(--muted); font-weight: 500;
+  background: var(--surface); transition: all .15s;
+}
+.tool-pill:hover { border-color: var(--teal); color: var(--teal); }
+.tool-pill.on { background: rgba(14,116,144,.08); border-color: var(--teal); color: var(--teal); }
+
+.pain-pill {
+  font-size: 12px; padding: 6px 16px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border); color: var(--muted); font-weight: 600;
+  background: var(--surface); transition: all .15s;
+}
+.pain-pill.low:hover,  .pain-pill.low.on  { background: rgba(22,163,74,.08);  border-color: var(--green); color: var(--green); }
+.pain-pill.med:hover,  .pain-pill.med.on  { background: rgba(217,119,6,.08);  border-color: var(--amber); color: var(--amber); }
+.pain-pill.high:hover, .pain-pill.high.on { background: rgba(220,38,38,.08); border-color: var(--red);   color: var(--red);   }
+
+.pain-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+
+/* CONNECTOR */
+.connector { height: 24px; display: flex; align-items: center; justify-content: center; color: var(--muted); position: relative; }
+.connector::before, .connector::after { content: ''; position: absolute; left: 50%; width: 1px; background: var(--border); height: 9px; }
+.connector::before { top: 0; } .connector::after { bottom: 0; }
+
+/* HINT */
+.hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.hint::before { content: '→ '; color: var(--accent); }
+
+/* SUMMARY */
+.summary-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 20px; }
+.summary-bar .section-label { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); display: block; }
+.stats-row { display: flex; flex-wrap: wrap; gap: 0; }
+.stat { display: flex; flex-direction: column; gap: 2px; padding: 0 24px; border-right: 1px solid var(--border); }
+.stat:first-child { padding-left: 0; }
+.stat:last-child { border-right: none; }
+.stat-val { font-weight: 800; font-size: 26px; }
+.stat-lbl { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+/* BUTTONS */
+.btn {
+  font-family: inherit; font-weight: 600; font-size: 13px;
+  border: none; border-radius: 8px; cursor: pointer; padding: 10px 20px;
+  display: inline-flex; align-items: center; gap: 8px; transition: all .15s;
+}
+.btn-blue   { background: var(--accent); color: #fff; }
+.btn-blue:hover  { background: #1646c0; }
+.btn-ghost  { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-del    { background: transparent; color: var(--muted); border: 1px solid var(--border); font-size: 11px; padding: 6px 12px; }
+.btn-del:hover   { border-color: var(--red); color: var(--red); }
+
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 40px 20px; border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); font-size: 13px; line-height: 2; margin-bottom: 16px; }
+.empty .icon { font-size: 28px; margin-bottom: 8px; }
+
+/* STEPS HEADER */
+.steps-hdr { margin-bottom: 16px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: #111827; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 200; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header-tag">Process Intelligence</div>
+  <h1>Map. <span>Diagnose.</span> Fix.</h1>
+  <p class="subtitle">Capture end-to-end processes, identify tooling gaps, and export a PowerPoint process map for IT.</p>
+
+  <!-- CARD 01: PROCESS IDENTITY -->
+  <div class="card" id="card-meta">
+    <div class="card-header open" id="hdr-meta" onclick="toggleCard('meta')">
+      <div class="card-num">01</div>
+      <div class="card-title" id="title-meta">Process Identity</div>
+      <div class="badges" id="badges-meta"></div>
+      <span class="chevron open" id="chev-meta">▾</span>
+    </div>
+    <div class="card-body open" id="body-meta">
+    </div>
+  </div>
+
+  <div class="connector">↓</div>
+
+  <!-- STEPS -->
+  <div class="steps-hdr">
+    <span class="section-label">02 — Process Steps</span>
+  </div>
+  <div id="steps-list"></div>
+  <div class="actions" style="margin-bottom:32px">
+    <button class="btn btn-blue" onclick="addStep()">＋ Add Step</button>
+    <button class="btn btn-ghost" onclick="loadExample()">Load Example</button>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-bar" id="summary" style="display:none">
+    <span class="section-label">03 — Summary</span>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val" style="color:var(--accent)" id="st-steps">0</div><div class="stat-lbl">Steps</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--teal)"   id="st-tools">0</div><div class="stat-lbl">System Types</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--amber)"  id="st-manual">0</div><div class="stat-lbl">Manual/Excel</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--red)"    id="st-pain">0</div><div class="stat-lbl">High Pain</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--red)"    id="st-gaps">0</div><div class="stat-lbl">Int. Gaps</div></div>
+    </div>
+  </div>
+
+  <!-- SAVE / LOAD — always visible -->
+  <div class="actions" style="margin-bottom:8px">
+    <button class="btn btn-ghost" onclick="saveProcess()">💾 Save to file</button>
+    <button class="btn btn-ghost" onclick="openLoadPanel()">📂 Load from file</button>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="actions" id="export-row" style="display:none">
+    <button class="btn btn-blue" id="pptx-btn" onclick="exportPPTX()">⬇ Export as PowerPoint</button>
+    <button class="btn btn-ghost" onclick="clearAll()">✕ Clear All</button>
+  </div>
+
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+var steps = [];
+var counter = 0;
+
+var TOOLS = ['SAP / ERP','Excel / Sheets','Paper / Manual','Internal App','External System','Email','Word / PDF','Other'];
+var PAIN_LABEL = {low:'Low Pain', medium:'Medium Pain', high:'High Pain'};
+var PAIN_HEX   = {low:'16a34a', medium:'d97706', high:'dc2626'};
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+// ── CARD TOGGLE ────────────────────────────────────────────────────────────
+function toggleCard(id) {
+  var body = document.getElementById('body-' + id);
+  var chev = document.getElementById('chev-' + id);
+  var hdr  = document.getElementById('hdr-'  + id);
+  if (!body) return;
+  var isOpen = body.classList.contains('open');
+  if (isOpen) {
+    body.classList.remove('open');
+    chev.classList.remove('open');
+    hdr.classList.remove('open');
+  } else {
+    body.classList.add('open');
+    chev.classList.add('open');
+    hdr.classList.add('open');
+  }
+}
+
+// ── META CARD ──────────────────────────────────────────────────────────────
+// ── META CARD ──────────────────────────────────────────────────────────────
+var metaToolTypes = [];
+var metaPainLevel = '';
+
+function renderMeta() {
+  var body = document.getElementById('body-meta');
+  if (!body) return;
+
+  var toolsHtml = '';
+  for (var t = 0; t < TOOLS.length; t++) {
+    var isOn = metaToolTypes.indexOf(TOOLS[t]) !== -1;
+    toolsHtml += '<span class="tool-pill' + (isOn ? ' on' : '') + '"'
+      + ' onclick="toggleMetaTool(\'' + TOOLS[t].replace(/'/g,"\\'") + '\')">'
+      + esc(TOOLS[t]) + '</span>';
+  }
+
+  var painHtml = '';
+  var painLevels = ['low','medium','high'];
+  for (var p = 0; p < painLevels.length; p++) {
+    var lvl = painLevels[p];
+    var isOn = metaPainLevel === lvl;
+    painHtml += '<span class="pain-pill ' + lvl + (isOn ? ' on' : '') + '"'
+      + ' onclick="toggleMetaPain(\'' + lvl + '\')">'
+      + PAIN_LABEL[lvl] + '</span>';
+  }
+
+  var v1 = document.getElementById('proc-name')   ? document.getElementById('proc-name').value   : '';
+  var v2 = document.getElementById('proc-person') ? document.getElementById('proc-person').value : '';
+  var v3 = document.getElementById('proc-tool')   ? document.getElementById('proc-tool').value   : '';
+  var v4 = document.getElementById('proc-handoff')? document.getElementById('proc-handoff').value: '';
+  var v5 = document.getElementById('proc-desc')   ? document.getElementById('proc-desc').value   : '';
+  var v6 = document.getElementById('proc-pdesc')  ? document.getElementById('proc-pdesc').value  : '';
+  var v7 = document.getElementById('proc-integ')  ? document.getElementById('proc-integ').value  : '';
+
+  // Field 1: Step Name → Process Name
+  // Field 2: Person / Role → Process Owner / Department
+  // Field 3: Current Tool in Use → Primary Tool / System in Use
+  // Field 4: How does data reach the next step? → How does output leave this process?
+  // Field 5: What happens in this step? → What does this process do?
+  // Field 6: Tool / System Type → (same pills)
+  // Field 7: Pain Level → (same pills)
+  // Field 8: Describe the pain / issue → (same label)
+  // Field 9: Desired Improvement / Integration → (same label)
+
+  body.innerHTML = '<div class="fgrid">'
+    + '<div class="fg"><label>Step Name</label>'
+      + '<input id="proc-name" value="' + esc(v1) + '" placeholder="e.g. Client Sample Analysis &amp; Invoicing" oninput="syncMeta()"></div>'
+    + '<div class="fg"><label>Person / Role doing this step</label>'
+      + '<input id="proc-person" value="' + esc(v2) + '" placeholder="e.g. Field Operations Team, Lab Manager" oninput="syncMeta()"></div>'
+    + '<div class="fg"><label>Current Tool in Use</label>'
+      + '<input id="proc-tool" value="' + esc(v3) + '" placeholder="e.g. SAP, Excel, paper forms, email" oninput="syncMeta()"></div>'
+    + '<div class="fg"><label>How does data reach the next step?</label>'
+      + '<input id="proc-handoff" value="' + esc(v4) + '" placeholder="e.g. Email, manual re-entry, API..." oninput="syncMeta()">'
+      + '<div class="hint">This is where integration gaps hide.</div></div>'
+    + '<div class="fg span2"><label>What happens in this step?</label>'
+      + '<textarea id="proc-desc" placeholder="Describe what this process does and what the output is..." oninput="syncMeta()">' + esc(v5) + '</textarea></div>'
+    + '<div class="fg span2"><label>Tool / System Type</label>'
+      + '<div class="pill-row">' + toolsHtml + '</div></div>'
+    + '<div class="fg span2 pain-box"><label>Pain Level</label>'
+      + '<div class="pill-row">' + painHtml + '</div></div>'
+    + '<div class="fg span2"><label>Describe the pain / issue</label>'
+      + '<textarea id="proc-pdesc" placeholder="e.g. Manual re-entry at every step, no system integration, data lost between steps..." oninput="syncMeta()">' + esc(v6) + '</textarea></div>'
+    + '<div class="fg span2"><label>Desired Improvement / Integration</label>'
+      + '<textarea id="proc-integ" placeholder="e.g. End-to-end digital flow, SAP integration, single source of truth..." oninput="syncMeta()">' + esc(v7) + '</textarea></div>'
+    + '</div>';
+}
+
+function syncMeta() {
+  var name = document.getElementById('proc-name')   ? document.getElementById('proc-name').value   : '';
+  var dept = document.getElementById('proc-person') ? document.getElementById('proc-person').value : '';
+  document.getElementById('title-meta').textContent = name || 'Process Identity';
+  var b = document.getElementById('badges-meta');
+  var html = dept ? '<span class="badge badge-teal">' + esc(dept) + '</span>' : '';
+  if (metaPainLevel) {
+    var cls = metaPainLevel === 'low' ? 'badge-green' : metaPainLevel === 'medium' ? 'badge-amber' : 'badge-red';
+    html += '<span class="badge ' + cls + '">' + PAIN_LABEL[metaPainLevel] + '</span>';
+  }
+  b.innerHTML = html;
+}
+
+function toggleMetaTool(type) {
+  var idx = metaToolTypes.indexOf(type);
+  if (idx === -1) { metaToolTypes.push(type); } else { metaToolTypes.splice(idx, 1); }
+  renderMeta();
+}
+
+function toggleMetaPain(level) {
+  metaPainLevel = (metaPainLevel === level) ? '' : level;
+  renderMeta();
+  syncMeta();
+}
+
+// ── ADD STEP ───────────────────────────────────────────────────────────────
+function addStep(data) {
+  counter++;
+  var id = counter;
+  var s = {
+    id:          id,
+    title:       data ? (data.title       || '') : '',
+    person:      data ? (data.person      || '') : '',
+    currentTool: data ? (data.currentTool || '') : '',
+    handoff:     data ? (data.handoff     || '') : '',
+    description: data ? (data.description || '') : '',
+    toolTypes:   data ? (data.toolTypes   || []) : [],
+    painLevel:   data ? (data.painLevel   || '') : '',
+    painDesc:    data ? (data.painDesc    || '') : '',
+    integration: data ? (data.integration || '') : ''
+  };
+  steps.push(s);
+  renderAll();
+  // open the new card
+  setTimeout(function() { toggleCard(id); }, 30);
+}
+
+function removeStep(id) {
+  steps = steps.filter(function(s){ return s.id !== id; });
+  renderAll();
+}
+
+// ── SYNC STEP FIELDS ───────────────────────────────────────────────────────
+function syncStep(id) {
+  var s = null;
+  for (var i = 0; i < steps.length; i++) { if (steps[i].id === id) { s = steps[i]; break; } }
+  if (!s) return;
+  var f = function(elId){ var el = document.getElementById(elId); return el ? el.value : ''; };
+  s.title       = f('f-title-'   + id);
+  s.person      = f('f-person-'  + id);
+  s.currentTool = f('f-tool-'    + id);
+  s.handoff     = f('f-handoff-' + id);
+  s.description = f('f-desc-'    + id);
+  s.painDesc    = f('f-pdesc-'   + id);
+  s.integration = f('f-integ-'   + id);
+  // update header preview
+  var tt = document.getElementById('tt-' + id);
+  var tp = document.getElementById('tp-' + id);
+  if (tt) tt.textContent = s.title || '';
+  if (tp) tp.textContent = s.person ? '· ' + s.person : '';
+  updateBadge(s);
+  updateSummary();
+}
+
+function toggleTool(id, type) {
+  var s = null;
+  for (var i = 0; i < steps.length; i++) { if (steps[i].id === id) { s = steps[i]; break; } }
+  if (!s) return;
+  var idx = s.toolTypes.indexOf(type);
+  if (idx === -1) { s.toolTypes.push(type); } else { s.toolTypes.splice(idx, 1); }
+  // update pill appearance
+  var pills = document.querySelectorAll('[data-tool-step="' + id + '"]');
+  for (var i = 0; i < pills.length; i++) {
+    var on = s.toolTypes.indexOf(pills[i].getAttribute('data-type')) !== -1;
+    pills[i].className = 'tool-pill' + (on ? ' on' : '');
+  }
+  updateBadge(s);
+  updateSummary();
+}
+
+function togglePain(id, level) {
+  var s = null;
+  for (var i = 0; i < steps.length; i++) { if (steps[i].id === id) { s = steps[i]; break; } }
+  if (!s) return;
+  s.painLevel = (s.painLevel === level) ? '' : level;
+  var pills = document.querySelectorAll('[data-pain-step="' + id + '"]');
+  for (var i = 0; i < pills.length; i++) {
+    var lvl = pills[i].getAttribute('data-level');
+    pills[i].className = 'pain-pill ' + lvl + (s.painLevel === lvl ? ' on' : '');
+  }
+  updateBadge(s);
+  updateSummary();
+}
+
+function updateBadge(s) {
+  var el = document.getElementById('badges-' + s.id);
+  if (!el) return;
+  var h = '';
+  for (var i = 0; i < s.toolTypes.length; i++) {
+    h += '<span class="badge badge-teal">' + esc(s.toolTypes[i]) + '</span>';
+  }
+  if (s.painLevel) {
+    var cls = s.painLevel === 'low' ? 'badge-green' : s.painLevel === 'medium' ? 'badge-amber' : 'badge-red';
+    h += '<span class="badge ' + cls + '">' + PAIN_LABEL[s.painLevel] + '</span>';
+  }
+  el.innerHTML = h;
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function renderAll() {
+  var container = document.getElementById('steps-list');
+  var hasSummary = steps.length > 0;
+  document.getElementById('summary').style.display    = hasSummary ? '' : 'none';
+  document.getElementById('export-row').style.display = hasSummary ? 'flex' : 'none';
+
+  if (steps.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="icon">＋</div>No steps yet. Add your first step below.</div>';
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < steps.length; i++) {
+    var s   = steps[i];
+    var num = String(i + 2);
+    if (num.length < 2) num = '0' + num;
+
+    // tool pills
+    var toolsHtml = '';
+    for (var t = 0; t < TOOLS.length; t++) {
+      var isOn = s.toolTypes.indexOf(TOOLS[t]) !== -1;
+      toolsHtml += '<span class="tool-pill' + (isOn ? ' on' : '') + '"'
+        + ' data-tool-step="' + s.id + '"'
+        + ' data-type="' + esc(TOOLS[t]) + '"'
+        + ' onclick="toggleTool(' + s.id + ', \'' + TOOLS[t].replace(/'/g,"\\'") + '\')">'
+        + esc(TOOLS[t]) + '</span>';
+    }
+
+    // pain pills
+    var painHtml = '';
+    var painLevels = ['low','medium','high'];
+    for (var p = 0; p < painLevels.length; p++) {
+      var lvl = painLevels[p];
+      var isOn = s.painLevel === lvl;
+      painHtml += '<span class="pain-pill ' + lvl + (isOn ? ' on' : '') + '"'
+        + ' data-pain-step="' + s.id + '"'
+        + ' data-level="' + lvl + '"'
+        + ' onclick="togglePain(' + s.id + ', \'' + lvl + '\')">'
+        + PAIN_LABEL[lvl] + '</span>';
+    }
+
+    var connector = (i < steps.length - 1) ? '<div class="connector">↓</div>' : '';
+
+    html += '<div class="card">'
+      + '<div class="card-header" id="hdr-' + s.id + '" onclick="toggleCard(' + s.id + ')">'
+        + '<div class="card-num">' + num + '</div>'
+        + '<div class="card-title">'
+          + '<span id="tt-' + s.id + '">' + (s.title ? esc(s.title) : '<span style="color:var(--muted);font-weight:400">Untitled Step</span>') + '</span>'
+          + '<span id="tp-' + s.id + '" class="card-person">' + (s.person ? '· ' + esc(s.person) : '') + '</span>'
+        + '</div>'
+        + '<div class="badges" id="badges-' + s.id + '"></div>'
+        + '<span class="chevron" id="chev-' + s.id + '">▾</span>'
+      + '</div>'
+      + '<div class="card-body" id="body-' + s.id + '">'
+        + '<div class="fgrid">'
+          + '<div class="fg"><label>Step Name</label>'
+            + '<input id="f-title-' + s.id + '" value="' + esc(s.title) + '" placeholder="e.g. Sample Collection on Client Site" oninput="syncStep(' + s.id + ')"></div>'
+          + '<div class="fg"><label>Person / Role doing this step</label>'
+            + '<input id="f-person-' + s.id + '" value="' + esc(s.person) + '" placeholder="e.g. Field Technician, Sarah M." oninput="syncStep(' + s.id + ')"></div>'
+          + '<div class="fg"><label>Current Tool in Use</label>'
+            + '<input id="f-tool-' + s.id + '" value="' + esc(s.currentTool) + '" placeholder="e.g. Excel template, paper form, SAP MM" oninput="syncStep(' + s.id + ')"></div>'
+          + '<div class="fg"><label>How does data reach the next step?</label>'
+            + '<input id="f-handoff-' + s.id + '" value="' + esc(s.handoff) + '" placeholder="e.g. Email, manual re-entry, API..." oninput="syncStep(' + s.id + ')">'
+            + '<div class="hint">This is where integration gaps hide.</div></div>'
+          + '<div class="fg span2"><label>What happens in this step?</label>'
+            + '<textarea id="f-desc-' + s.id + '" placeholder="Describe what is done and what the output is..." oninput="syncStep(' + s.id + ')">' + esc(s.description) + '</textarea></div>'
+          + '<div class="fg span2"><label>Tool / System Type</label>'
+            + '<div class="pill-row">' + toolsHtml + '</div></div>'
+          + '<div class="fg span2 pain-box"><label>Pain Level</label>'
+            + '<div class="pill-row">' + painHtml + '</div></div>'
+          + '<div class="fg span2"><label>Describe the pain / issue</label>'
+            + '<textarea id="f-pdesc-' + s.id + '" placeholder="e.g. 2h manual effort, data lost in emails, no audit trail..." oninput="syncStep(' + s.id + ')">' + esc(s.painDesc) + '</textarea></div>'
+          + '<div class="fg span2"><label>Desired Improvement / Integration</label>'
+            + '<textarea id="f-integ-' + s.id + '" placeholder="e.g. Auto-sync results, eliminate Excel, trigger SAP invoice automatically..." oninput="syncStep(' + s.id + ')">' + esc(s.integration) + '</textarea></div>'
+        + '</div>'
+        + '<button class="btn btn-del" onclick="removeStep(' + s.id + ')">✕ Remove Step</button>'
+      + '</div>'
+    + '</div>' + connector;
+  }
+
+  container.innerHTML = html;
+
+  // restore badges
+  for (var i = 0; i < steps.length; i++) { updateBadge(steps[i]); }
+  updateSummary();
+}
+
+// ── SUMMARY ────────────────────────────────────────────────────────────────
+function updateSummary() {
+  var toolSet = {}, manual = 0, highPain = 0, gaps = 0;
+  for (var i = 0; i < steps.length; i++) {
+    var s = steps[i];
+    for (var t = 0; t < s.toolTypes.length; t++) toolSet[s.toolTypes[t]] = 1;
+    if (s.toolTypes.indexOf('Excel / Sheets') !== -1 || s.toolTypes.indexOf('Paper / Manual') !== -1) manual++;
+    if (s.painLevel === 'high') highPain++;
+    var h = (s.handoff || '').toLowerCase();
+    if (h.indexOf('manual') !== -1 || h.indexOf('email') !== -1 || h.indexOf('print') !== -1) gaps++;
+  }
+  document.getElementById('st-steps').textContent  = steps.length;
+  document.getElementById('st-tools').textContent  = Object.keys(toolSet).length;
+  document.getElementById('st-manual').textContent = manual;
+  document.getElementById('st-pain').textContent   = highPain;
+  document.getElementById('st-gaps').textContent   = gaps;
+}
+
+// ── CLEAR ──────────────────────────────────────────────────────────────────
+function clearAll() {
+  if (!confirm('Clear everything and start over?')) return;
+  steps = []; counter = 0;
+  document.getElementById('proc-name').value    = '';
+  document.getElementById('proc-person').value  = '';
+  document.getElementById('proc-tool').value    = '';
+  document.getElementById('proc-handoff').value = '';
+  document.getElementById('proc-desc').value    = '';
+  document.getElementById('proc-pdesc').value   = '';
+  document.getElementById('proc-integ').value   = '';
+  metaToolTypes = [];
+  metaPainLevel = '';
+  renderMeta();
+  syncMeta();
+  renderAll();
+}
+
+// ── EXAMPLE ───────────────────────────────────────────────────────────────
+function loadExample() {
+  steps = []; counter = 0;
+  document.getElementById('proc-name').value   = 'Client Sample Analysis & Invoicing';
+  document.getElementById('proc-person').value = 'Field Operations / Lab Team';
+  document.getElementById('proc-tool').value   = 'SAP, Excel, paper forms, Outlook';
+  document.getElementById('proc-handoff').value= 'Email and manual re-entry between every step';
+  document.getElementById('proc-desc').value   = 'Collect samples at client site, ship to external lab, analyze results, generate client report, and invoice via SAP.';
+  document.getElementById('proc-pdesc').value  = 'Heavy reliance on Excel and paper forms. No system integration. Data re-entered manually at every handoff. No audit trail or real-time visibility.';
+  document.getElementById('proc-integ').value  = 'End-to-end digital flow with SAP as single source of truth. Eliminate manual re-entry. Automated status tracking and notifications.';
+  metaToolTypes = ['SAP / ERP','Excel / Sheets','Paper / Manual','Internal App','Email'];
+  metaPainLevel = 'high';
+  renderMeta();
+  syncMeta();
+
+  var examples = [
+    {title:'Sample Collection on Client Site', person:'Field Technician', currentTool:'Printed paper form', description:'Field team collects samples and logs them on a printed form. Sample IDs assigned manually.', toolTypes:['Paper / Manual'], handoff:'Paper form brought back, data manually entered into Excel', painLevel:'high', painDesc:'High error risk during manual transcription. No digital record at collection point. Lost forms have occurred.', integration:'Mobile app for field data entry with auto-generated sample IDs synced to central system.'},
+    {title:'Sample Shipment to External Lab', person:'Office Coordinator', currentTool:'Excel tracking sheet + courier portal', description:'Office staff packages and ships samples. Excel updated with shipment details and expected return date.', toolTypes:['Excel / Sheets','Email'], handoff:'Email confirmation from courier, manually noted in Excel', painLevel:'medium', painDesc:'No automated status tracking. Must manually check email and update sheet. Delays go unnoticed.', integration:'Automated courier status feeding a central dashboard with delay alerts.'},
+    {title:'Lab Result Receipt & Logging', person:'Lab Administrator', currentTool:'Outlook + Excel + shared drive', description:'Lab sends results via email (PDF). Staff manually downloads, renames files, updates Excel.', toolTypes:['Email','Excel / Sheets'], handoff:'PDF saved to shared drive, Excel updated manually, analyst notified by email', painLevel:'high', painDesc:'Results sit in inbox with no visibility. No audit trail. Version confusion on shared drive. 30-60 min per batch.', integration:'Lab portal API or email parser that auto-ingests results into the internal analysis tool.'},
+    {title:'Result Analysis', person:'Analyst', currentTool:'Internal LIMS v2.3', description:'Analyst uses internal tool to process lab results and flag anomalies against thresholds.', toolTypes:['Internal App'], handoff:'Results manually exported to Word template', painLevel:'medium', painDesc:'Export to Word is manual and formatting is inconsistent. No direct link to report template.', integration:'Auto-generate structured report draft from analysis output within the same tool.'},
+    {title:'Report Generation & Client Delivery', person:'Senior Analyst', currentTool:'MS Word + Outlook', description:'Report written in Word, reviewed, converted to PDF, emailed to client.', toolTypes:['Word / PDF','Email'], handoff:'PDF emailed to client. No open tracking. BCC filed manually.', painLevel:'medium', painDesc:'Manual process, no delivery confirmation, no client portal. Formatting errors occur regularly.', integration:'Client portal or automated delivery with read receipts and version history.'},
+    {title:'Time & Expense Tracking', person:'All team members', currentTool:'Shared Excel timesheet (SharePoint)', description:'Team logs time and expenses in a shared Excel file per project, updated ad hoc.', toolTypes:['Excel / Sheets'], handoff:'Excel exported and emailed to finance for SAP entry', painLevel:'high', painDesc:'Time logging inconsistent and often retroactive. Finance must re-enter everything into SAP manually.', integration:'Integrated time tracking that feeds directly into billing without manual re-entry.'},
+    {title:'SAP Invoicing', person:'Finance / Billing Team', currentTool:'SAP FI/SD + emailed Excel data', description:'Finance manually creates invoice in SAP based on emailed Excel data and report confirmation.', toolTypes:['SAP / ERP','Excel / Sheets','Email'], handoff:'Invoice sent via SAP. No link back to project record.', painLevel:'medium', painDesc:'Double data entry from Excel to SAP. Risk of discrepancy. No automated project closure trigger.', integration:'Direct SAP integration from time/expense tool. Auto-trigger invoice on report delivery.'}
+  ];
+  for (var i = 0; i < examples.length; i++) { addStep(examples[i]); }
+}
+
+// ── PPTX EXPORT ────────────────────────────────────────────────────────────
+function loadScript(src, cb) {
+  var existing = document.querySelector('script[data-pptx]');
+  if (existing && window.PptxGenJS) { cb(null); return; }
+  var s = document.createElement('script');
+  s.setAttribute('data-pptx','1');
+  s.src = src;
+  s.onload  = function() { cb(null); };
+  s.onerror = function() { cb(new Error('Failed to load library')); };
+  document.head.appendChild(s);
+}
+
+function exportPPTX() {
+  var btn = document.getElementById('pptx-btn');
+  btn.textContent = '⏳ Loading…'; btn.disabled = true;
+  loadScript('https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js', function(err) {
+    if (err) {
+      showToast('Could not load PPTX library — check internet connection.');
+      btn.textContent = '⬇ Export as PowerPoint'; btn.disabled = false;
+      return;
+    }
+    btn.textContent = '⏳ Building…';
+    try {
+      buildPPTX(function(err2) {
+        btn.textContent = '⬇ Export as PowerPoint'; btn.disabled = false;
+        if (err2) showToast('Export error: ' + err2.message);
+        else showToast('✓ PowerPoint downloaded!');
+      });
+    } catch(e) {
+      btn.textContent = '⬇ Export as PowerPoint'; btn.disabled = false;
+      showToast('Export error: ' + e.message);
+    }
+  });
+}
+
+function buildPPTX(done) {
+  var procName = document.getElementById('proc-name')    ? document.getElementById('proc-name').value    : 'Process Map';
+  var dept     = document.getElementById('proc-person')  ? document.getElementById('proc-person').value  : '';
+  var goal     = document.getElementById('proc-desc')    ? document.getElementById('proc-desc').value    : '';
+  var freq     = '';
+  var vol      = '';
+  var procPain = document.getElementById('proc-pdesc')   ? document.getElementById('proc-pdesc').value   : '';
+  var procImpr = document.getElementById('proc-integ')   ? document.getElementById('proc-integ').value   : '';
+  var dateStr  = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+
+  // ── COLOUR PALETTE ──
+  var C = {
+    navy:  '1E3A5F',
+    blue:  '1A56DB',
+    ice:   'E8EFF8',
+    white: 'FFFFFF',
+    offwht:'F7F9FC',
+    text:  '111827',
+    muted: '6B7280',
+    border:'D1D5DB',
+    lane:  'EEF2FF',   // swim lane bg
+    laneHd:'C7D2FE',   // swim lane header
+    task:  'FFFFFF',   // BPMN task fill
+    taskBd:'1A56DB',   // BPMN task border
+    flow:  '6B7280',   // sequence flow arrows
+    start: '16A34A',   // BPMN start event (green circle)
+    end:   'DC2626',   // BPMN end event (red circle, thick border)
+    gw:    'D97706',   // gateway diamond (amber)
+    pLow:  '16A34A',
+    pMed:  'D97706',
+    pHigh: 'DC2626',
+    pLowBg:'F0FDF4',
+    pMedBg:'FFFBEB',
+    pHighBg:'FEF2F2'
+  };
+
+  var W = 13.3, H = 7.5;
+  var pres = new PptxGenJS();
+  pres.layout = 'LAYOUT_WIDE';
+  pres.title  = procName;
+
+  // helpers
+  function tr(s,n) { return s && s.length>n ? s.substring(0,n-1)+'…' : (s||''); }
+  function pc(pl)  { return pl ? C['p'+pl.charAt(0).toUpperCase()+pl.slice(1)] : C.border; }
+  function pb(pl)  { return pl==='high'?C.pHighBg : pl==='medium'?C.pMedBg : pl==='low'?C.pLowBg : 'F3F4F6'; }
+  function hdr(slide, title, sub) {
+    slide.addShape(pres.shapes.RECTANGLE,{x:0,y:0,w:W,h:0.62,fill:{color:C.navy},line:{color:C.navy,width:0}});
+    slide.addShape(pres.shapes.RECTANGLE,{x:0,y:0,w:0.18,h:H,fill:{color:C.blue},line:{color:C.blue,width:0}});
+    slide.addText(title,{x:0.35,y:0,w:W-3.5,h:0.62,fontSize:14,bold:true,color:C.white,fontFace:'Calibri',valign:'middle',margin:0,wrap:true});
+    slide.addText(sub,  {x:W-3.2,y:0,w:3.0,h:0.62,fontSize:9,color:'CADCFC',fontFace:'Calibri',align:'right',valign:'middle',margin:0});
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // SLIDE 1 — TITLE
+  // ────────────────────────────────────────────────────────────
+  var s1 = pres.addSlide();
+  s1.background = {color:C.navy};
+  s1.addShape(pres.shapes.RECTANGLE,{x:0,y:0,w:0.3,h:H,fill:{color:C.blue},line:{color:C.blue,width:0}});
+  s1.addText(procName, {x:0.7,y:1.6,w:8.5,h:1.6,fontSize:34,bold:true,color:C.white,fontFace:'Calibri',valign:'middle',wrap:true});
+  s1.addText('BPMN Process Map  ·  Pain Point Analysis',{x:0.7,y:3.1,w:8.5,h:0.45,fontSize:14,color:'CADCFC',fontFace:'Calibri'});
+  if (dept) s1.addText(dept,{x:0.7,y:3.62,w:8.5,h:0.35,fontSize:12,color:'CADCFC',fontFace:'Calibri'});
+  if (goal) s1.addText(tr(goal,160),{x:0.7,y:4.1,w:8.5,h:0.6,fontSize:11,color:'8899BB',fontFace:'Calibri',wrap:true});
+  s1.addText('Generated: '+dateStr,{x:0.7,y:H-0.55,w:8,h:0.28,fontSize:10,color:'556688',fontFace:'Calibri'});
+  // stat boxes
+  var highN=0, manN=0, gapN=0;
+  for(var i=0;i<steps.length;i++){
+    if(steps[i].painLevel==='high') highN++;
+    if(steps[i].toolTypes.indexOf('Excel / Sheets')!==-1||steps[i].toolTypes.indexOf('Paper / Manual')!==-1) manN++;
+    var hh=(steps[i].handoff||'').toLowerCase();
+    if(hh.indexOf('email')!==-1||hh.indexOf('manual')!==-1) gapN++;
+  }
+  var sts=[{v:String(steps.length),l:'Tasks'},{v:String(highN),l:'High Pain'},{v:String(gapN),l:'Integration Gaps'}];
+  for(var i=0;i<sts.length;i++){
+    var bx=9.8, by=1.8+i*1.5;
+    s1.addShape(pres.shapes.RECTANGLE,{x:bx,y:by,w:3.0,h:1.2,fill:{color:C.white,transparency:88},line:{color:C.white,transparency:65,width:0.5}});
+    s1.addText(sts[i].v,{x:bx,y:by+0.05,w:3.0,h:0.65,fontSize:30,bold:true,color:C.white,fontFace:'Calibri',align:'center'});
+    s1.addText(sts[i].l,{x:bx,y:by+0.7,w:3.0,h:0.35,fontSize:10,color:'CADCFC',fontFace:'Calibri',align:'center'});
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // SLIDE 2 — BPMN PROCESS FLOW DIAGRAM (swim lanes)
+  // ────────────────────────────────────────────────────────────
+  var s2 = pres.addSlide();
+  s2.background = {color:C.offwht};
+  hdr(s2, 'BPMN Process Flow', procName);
+
+  var N = steps.length;
+  // collect unique roles for swim lanes
+  var roles = [], roleMap = {};
+  for(var i=0;i<N;i++){
+    var role = steps[i].person || 'Unassigned';
+    if(!roleMap[role]){ roleMap[role]=true; roles.push(role); }
+  }
+  var nLanes = roles.length;
+
+  // layout constants
+  var diagramTop = 0.75;
+  var diagramH   = H - diagramTop - 0.2;
+  var laneH      = diagramH / nLanes;
+  var laneLabW   = 0.55;
+  var flowAreaX  = 0.22 + laneLabW;
+  var flowAreaW  = W - flowAreaX - 0.3;
+
+  // BPMN element sizes
+  var evtR  = 0.22;  // radius of start/end event circle
+  var taskW = Math.min(1.45, (flowAreaW - 0.6) / (N + 1) - 0.18);
+  var taskH = Math.min(0.65, laneH * 0.55);
+  var arrowW = (flowAreaW - 0.5 - (N+2)*(taskW) - 2*evtR*2) / (N+1);
+  if(arrowW < 0.1) arrowW = 0.1;
+
+  // x positions: start event → tasks → end event, evenly spaced
+  var totalItems = N + 2; // start + N tasks + end
+  var spacing = (flowAreaW - 0.4) / (totalItems + 1);
+  var itemXs = [];
+  for(var i=0;i<totalItems;i++){
+    itemXs.push(flowAreaX + spacing*(i+1) + taskW*i - taskW/2);
+  }
+  // recompute cleanly: centres
+  var totalW2 = 2*(evtR*2) + N*taskW + (N+1)*0.25;
+  var startCx  = flowAreaX + 0.3;
+  var endCx    = flowAreaX + flowAreaW - 0.3;
+  var taskSpacing = (endCx - startCx - evtR*2 - evtR*2 - N*taskW) / (N+1);
+  var taskXs = [];
+  for(var i=0;i<N;i++){
+    taskXs.push(startCx + evtR*2 + taskSpacing*(i+1) + taskW*i);
+  }
+
+  // draw lane backgrounds and labels
+  for(var r=0;r<nLanes;r++){
+    var ly = diagramTop + r*laneH;
+    // alternating lane shading
+    var laneFill = (r%2===0) ? 'F0F4FF' : 'F8FAFF';
+    s2.addShape(pres.shapes.RECTANGLE,{x:0.22,y:ly,w:W-0.44,h:laneH,fill:{color:laneFill},line:{color:'C7D2FE',width:0.5}});
+    // lane label (rotated via narrow vertical strip)
+    s2.addShape(pres.shapes.RECTANGLE,{x:0.22,y:ly,w:laneLabW,h:laneH,fill:{color:C.laneHd},line:{color:'A5B4FC',width:0.5}});
+    s2.addText(tr(roles[r],18),{x:0.22,y:ly,w:laneLabW,h:laneH,fontSize:7,bold:true,color:'1E3A5F',fontFace:'Calibri',align:'center',valign:'middle',wrap:true});
+  }
+
+  // pool border
+  s2.addShape(pres.shapes.RECTANGLE,{x:0.22,y:diagramTop,w:W-0.44,h:diagramH,fill:{type:'none'},line:{color:C.navy,width:1.2}});
+
+  // helper: lane Y centre for a role
+  function laneCY(role) {
+    var idx = roles.indexOf(role||'Unassigned');
+    if(idx===-1) idx=0;
+    return diagramTop + idx*laneH + laneH/2;
+  }
+
+  // START EVENT — green circle (BPMN none start event)
+  var startCY = laneCY(steps[0].person);
+  s2.addShape(pres.shapes.OVAL,{x:startCx-evtR,y:startCY-evtR,w:evtR*2,h:evtR*2,fill:{color:C.start},line:{color:'0F7A30',width:1.5}});
+  s2.addText('Start',{x:startCx-evtR-0.05,y:startCY+evtR+0.02,w:evtR*2+0.1,h:0.2,fontSize:6.5,color:C.muted,fontFace:'Calibri',align:'center'});
+
+  // END EVENT — red circle with thick border (BPMN none end event)
+  var lastRole = steps[N-1].person || 'Unassigned';
+  var endCY = laneCY(lastRole);
+  s2.addShape(pres.shapes.OVAL,{x:endCx-evtR,y:endCY-evtR,w:evtR*2,h:evtR*2,fill:{color:C.end},line:{color:'991B1B',width:2.5}});
+  s2.addText('End',{x:endCx-evtR-0.05,y:endCY+evtR+0.02,w:evtR*2+0.1,h:0.2,fontSize:6.5,color:C.muted,fontFace:'Calibri',align:'center'});
+
+  // TASKS + SEQUENCE FLOWS
+  for(var i=0;i<N;i++){
+    var st   = steps[i];
+    var role = st.person || 'Unassigned';
+    var cy   = laneCY(role);
+    var tx   = taskXs[i];
+    var ty   = cy - taskH/2;
+    var painCol = st.painLevel ? C['p'+st.painLevel.charAt(0).toUpperCase()+st.painLevel.slice(1)] : C.taskBd;
+
+    // Task box (BPMN rounded task)
+    s2.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:tx,y:ty,w:taskW,h:taskH,rectRadius:0.06,fill:{color:C.task},line:{color:painCol,width:1.5}});
+    // pain indicator top stripe
+    s2.addShape(pres.shapes.RECTANGLE,{x:tx,y:ty,w:taskW,h:0.06,fill:{color:painCol},line:{color:painCol,width:0}});
+    // step number
+    s2.addText(String(i+1),{x:tx+0.04,y:ty+0.06,w:0.22,h:0.18,fontSize:6,bold:true,color:painCol,fontFace:'Calibri',align:'left',margin:0});
+    // task name
+    s2.addText(tr(st.title||'Task '+(i+1),28),{x:tx+0.04,y:ty+0.22,w:taskW-0.08,h:taskH-0.28,fontSize:7,bold:true,color:C.text,fontFace:'Calibri',align:'center',valign:'top',wrap:true});
+
+    // SEQUENCE FLOW from previous element to this task
+    var prevX = (i===0) ? startCx+evtR : taskXs[i-1]+taskW;
+    var prevY = (i===0) ? startCY       : laneCY(steps[i-1].person||'Unassigned');
+    var thisX = tx;
+    var thisY = cy;
+
+    if(Math.abs(prevY - thisY) < 0.05) {
+      // same lane — simple horizontal arrow
+      s2.addShape(pres.shapes.LINE,{x:prevX,y:thisY,w:thisX-prevX,h:0,line:{color:C.flow,width:1.0}});
+    } else {
+      // cross-lane — elbow connector: right then down/up then right
+      var midX = prevX + (thisX-prevX)*0.5;
+      s2.addShape(pres.shapes.LINE,{x:prevX,y:prevY,w:midX-prevX,h:0,line:{color:C.flow,width:1.0}});
+      s2.addShape(pres.shapes.LINE,{x:midX,y:prevY,w:0,h:thisY-prevY,line:{color:C.flow,width:1.0}});
+      s2.addShape(pres.shapes.LINE,{x:midX,y:thisY,w:thisX-midX,h:0,line:{color:C.flow,width:1.0}});
+    }
+
+    // handoff label on sequence flow (shown as annotation above/below arrow)
+    if(st.handoff && i>0){
+      var lblX = (taskXs[i-1]+taskW + tx)/2 - 0.4;
+      var lblY = cy < laneCY(steps[i-1].person||'Unassigned') ? cy - 0.28 : cy + 0.05;
+      s2.addText(tr(st.handoff,30),{x:lblX,y:lblY,w:0.8,h:0.22,fontSize:5.5,color:'8B5CF6',fontFace:'Calibri',align:'center',italic:true});
+    }
+  }
+
+  // final sequence flow: last task → end event
+  var lastTaskX = taskXs[N-1]+taskW;
+  var lastTaskY = laneCY(steps[N-1].person||'Unassigned');
+  if(Math.abs(lastTaskY-endCY)<0.05){
+    s2.addShape(pres.shapes.LINE,{x:lastTaskX,y:endCY,w:endCx-evtR-lastTaskX,h:0,line:{color:C.flow,width:1.0}});
+  } else {
+    var mx = lastTaskX+(endCx-evtR-lastTaskX)*0.5;
+    s2.addShape(pres.shapes.LINE,{x:lastTaskX,y:lastTaskY,w:mx-lastTaskX,h:0,line:{color:C.flow,width:1.0}});
+    s2.addShape(pres.shapes.LINE,{x:mx,y:lastTaskY,w:0,h:endCY-lastTaskY,line:{color:C.flow,width:1.0}});
+    s2.addShape(pres.shapes.LINE,{x:mx,y:endCY,w:endCx-evtR-mx,h:0,line:{color:C.flow,width:1.0}});
+  }
+
+  // legend
+  var legY2 = H - 0.38;
+  var legItems = [
+    {col:C.start, label:'Start Event'},
+    {col:C.end,   label:'End Event'},
+    {col:C.pHigh, label:'High Pain'},
+    {col:C.pMed,  label:'Medium Pain'},
+    {col:C.pLow,  label:'Low Pain'},
+    {col:'8B5CF6',label:'Sequence Flow / Handoff'}
+  ];
+  for(var i=0;i<legItems.length;i++){
+    var lx2 = 0.4 + i*2.1;
+    s2.addShape(pres.shapes.RECTANGLE,{x:lx2,y:legY2+0.03,w:0.18,h:0.18,fill:{color:legItems[i].col},line:{color:legItems[i].col,width:0}});
+    s2.addText(legItems[i].label,{x:lx2+0.24,y:legY2,w:1.8,h:0.26,fontSize:8,color:C.muted,fontFace:'Calibri'});
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // SLIDES 3+ — ONE PER BPMN TASK (full detail)
+  // ────────────────────────────────────────────────────────────
+  for(var i=0;i<steps.length;i++){
+    var st = steps[i];
+    var sl = pres.addSlide();
+    sl.background = {color:C.offwht};
+    hdr(sl, 'Task '+(i+1)+' / '+steps.length+'  —  '+(st.title||'Untitled'), procName);
+
+    var painCol2 = pc(st.painLevel);
+    var painBg2  = pb(st.painLevel);
+    var Y0=0.78, LX=0.35, CW=5.9, RX=6.6, RW=W-RX-0.3;
+
+    // ── LEFT: task detail ──
+    // BPMN task header strip
+    sl.addShape(pres.shapes.RECTANGLE,{x:LX,y:Y0,w:CW,h:0.38,fill:{color:C.blue},line:{color:C.blue,width:0}});
+    sl.addText('BPMN TASK',{x:LX+0.1,y:Y0,w:1.0,h:0.38,fontSize:7,bold:true,color:'CADCFC',fontFace:'Calibri',valign:'middle'});
+    sl.addText(st.title||'Untitled',{x:LX+1.0,y:Y0,w:CW-1.1,h:0.38,fontSize:12,bold:true,color:C.white,fontFace:'Calibri',valign:'middle',wrap:true});
+
+    var rowY2 = Y0+0.48;
+    // performer row
+    sl.addText('PERFORMER',{x:LX,y:rowY2,w:1.3,h:0.22,fontSize:7,bold:true,color:C.muted,fontFace:'Calibri',charSpacing:0.8});
+    sl.addText(st.person||'—',{x:LX+1.35,y:rowY2,w:CW-1.35,h:0.22,fontSize:11,color:C.text,fontFace:'Calibri'});
+    rowY2 += 0.28;
+    // current system
+    sl.addText('CURRENT SYSTEM',{x:LX,y:rowY2,w:1.3,h:0.22,fontSize:7,bold:true,color:C.muted,fontFace:'Calibri',charSpacing:0.8});
+    sl.addText(st.currentTool||'—',{x:LX+1.35,y:rowY2,w:CW-1.35,h:0.22,fontSize:11,color:C.text,fontFace:'Calibri'});
+    rowY2 += 0.28;
+    // tool types
+    if(st.toolTypes && st.toolTypes.length){
+      sl.addText('SYSTEM TYPE',{x:LX,y:rowY2,w:1.3,h:0.22,fontSize:7,bold:true,color:C.muted,fontFace:'Calibri',charSpacing:0.8});
+      sl.addText(st.toolTypes.join('  ·  '),{x:LX+1.35,y:rowY2,w:CW-1.35,h:0.22,fontSize:10,color:C.blue,fontFace:'Calibri'});
+      rowY2 += 0.28;
+    }
+    // divider
+    sl.addShape(pres.shapes.LINE,{x:LX,y:rowY2,w:CW,h:0,line:{color:C.border,width:0.5}});
+    rowY2 += 0.14;
+    // description
+    sl.addText('TASK DESCRIPTION',{x:LX,y:rowY2,w:CW,h:0.22,fontSize:7,bold:true,color:C.muted,fontFace:'Calibri',charSpacing:0.8});
+    rowY2 += 0.26;
+    sl.addText(st.description||'No description provided.',{x:LX,y:rowY2,w:CW,h:0.85,fontSize:11,color:C.text,fontFace:'Calibri',wrap:true,valign:'top'});
+    rowY2 += 0.95;
+    // sequence flow output
+    sl.addShape(pres.shapes.LINE,{x:LX,y:rowY2,w:CW,h:0,line:{color:C.border,width:0.5}});
+    rowY2 += 0.14;
+    sl.addText('SEQUENCE FLOW OUTPUT (→ next task)',{x:LX,y:rowY2,w:CW,h:0.22,fontSize:7,bold:true,color:C.muted,fontFace:'Calibri',charSpacing:0.8});
+    rowY2 += 0.26;
+    sl.addText(st.handoff||'Not specified.',{x:LX,y:rowY2,w:CW,h:0.55,fontSize:11,color:C.text,fontFace:'Calibri',wrap:true,valign:'top'});
+
+    // ── RIGHT: pain card ──
+    sl.addShape(pres.shapes.RECTANGLE,{x:RX,y:Y0,w:RW,h:2.6,fill:{color:painBg2},line:{color:painCol2,width:1.5}});
+    sl.addShape(pres.shapes.RECTANGLE,{x:RX,y:Y0,w:RW,h:0.32,fill:{color:painCol2},line:{color:painCol2,width:0}});
+    sl.addText('PAIN ASSESSMENT',{x:RX+0.12,y:Y0,w:RW-0.15,h:0.32,fontSize:8,bold:true,color:C.white,fontFace:'Calibri',valign:'middle',charSpacing:1});
+    sl.addText(st.painLevel ? PAIN_LABEL[st.painLevel].toUpperCase() : 'NOT SET',{x:RX+0.12,y:Y0+0.36,w:RW-0.2,h:0.42,fontSize:18,bold:true,color:painCol2,fontFace:'Calibri'});
+    sl.addText(st.painDesc||'No pain description provided.',{x:RX+0.12,y:Y0+0.8,w:RW-0.2,h:1.72,fontSize:10,color:C.text,fontFace:'Calibri',wrap:true,valign:'top'});
+
+    // ── RIGHT: improvement card ──
+    var impY2 = Y0+2.75;
+    sl.addShape(pres.shapes.RECTANGLE,{x:RX,y:impY2,w:RW,h:H-impY2-0.2,fill:{color:C.ice},line:{color:C.blue,width:1.5}});
+    sl.addShape(pres.shapes.RECTANGLE,{x:RX,y:impY2,w:RW,h:0.32,fill:{color:C.blue},line:{color:C.blue,width:0}});
+    sl.addText('DESIRED IMPROVEMENT',{x:RX+0.12,y:impY2,w:RW-0.15,h:0.32,fontSize:8,bold:true,color:C.white,fontFace:'Calibri',valign:'middle',charSpacing:1});
+    sl.addText(st.integration||'No improvement specified.',{x:RX+0.12,y:impY2+0.38,w:RW-0.2,h:H-impY2-0.7,fontSize:10,color:C.text,fontFace:'Calibri',wrap:true,valign:'top'});
+
+    // step watermark
+    sl.addText(String(i+1),{x:W-0.95,y:H-0.95,w:0.7,h:0.7,fontSize:40,bold:true,color:'E5E7EB',fontFace:'Calibri',align:'center'});
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // FINAL SLIDE — DIGITIZATION PRIORITIES
+  // ────────────────────────────────────────────────────────────
+  var sE = pres.addSlide();
+  sE.background = {color:C.navy};
+  sE.addShape(pres.shapes.RECTANGLE,{x:0,y:0,w:0.3,h:H,fill:{color:C.blue},line:{color:C.blue,width:0}});
+  sE.addText('Digitization Priorities',{x:0.55,y:0.4,w:W-1,h:0.6,fontSize:22,bold:true,color:C.white,fontFace:'Calibri'});
+  sE.addText('Ranked by pain level and manual effort',{x:0.55,y:0.95,w:W-1,h:0.3,fontSize:11,color:'CADCFC',fontFace:'Calibri',italic:true});
+
+  var hiList=[], mList=[], mnList=[];
+  for(var i=0;i<steps.length;i++){
+    var st=steps[i];
+    if(st.painLevel==='high')   hiList.push(st);
+    if(st.painLevel==='medium') mList.push(st);
+    if(st.toolTypes.indexOf('Excel / Sheets')!==-1||st.toolTypes.indexOf('Paper / Manual')!==-1) mnList.push(st);
+  }
+  var pcols=[
+    {t:'HIGH PRIORITY',  col:C.pHigh, items:hiList.map(function(s){return s.title+(s.integration?' → '+s.integration:'');})},
+    {t:'MEDIUM PRIORITY',col:C.pMed,  items:mList.map(function(s){return s.title+(s.integration?' → '+s.integration:'');})},
+    {t:'MANUAL / EXCEL', col:'CADCFC',items:mnList.map(function(s){return s.title+(s.handoff?' (handoff: '+tr(s.handoff,40)+')':'');})}
+  ];
+  for(var ci=0;ci<pcols.length;ci++){
+    var col2=pcols[ci];
+    var cx2=0.55+ci*((W-0.7)/3), cw2=(W-0.7)/3-0.3;
+    // column header
+    sE.addShape(pres.shapes.RECTANGLE,{x:cx2,y:1.4,w:cw2,h:0.35,fill:{color:col2.col,transparency:col2.col==='CADCFC'?0:20},line:{color:col2.col,width:0}});
+    sE.addText(col2.t,{x:cx2,y:1.4,w:cw2,h:0.35,fontSize:9,bold:true,color:col2.col==='CADCFC'?C.navy:C.white,fontFace:'Calibri',align:'center',valign:'middle'});
+    if(!col2.items.length){
+      sE.addText('None identified',{x:cx2,y:1.85,w:cw2,h:0.35,fontSize:10,color:'8899BB',fontFace:'Calibri',italic:true});
+    } else {
+      var bItems2=[];
+      for(var bi=0;bi<col2.items.length;bi++){
+        bItems2.push({text:tr(col2.items[bi],120),options:{bullet:true,breakLine:bi<col2.items.length-1,fontSize:9.5,color:C.white,fontFace:'Calibri',paraSpaceAfter:4}});
+      }
+      sE.addText(bItems2,{x:cx2,y:1.85,w:cw2,h:H-2.25,valign:'top',wrap:true});
+    }
+  }
+  sE.addText(procName+'  ·  '+dateStr,{x:0.55,y:H-0.45,w:W-1,h:0.28,fontSize:9,color:'556688',fontFace:'Calibri'});
+
+  // ── WRITE FILE (callback form, not async) ──
+  var fileName = procName.replace(/[^a-z0-9]/gi,'_') + '_BPMN_Process_Map.pptx';
+  pres.writeFile({fileName: fileName})
+    .then(function()  { done(null); })
+    .catch(function(e){ done(e);    });
+}
+
+// ── SAVE / LOAD (JSON file — works standalone, SharePoint, anywhere) ────────
+
+function getMetaSnapshot() {
+  return {
+    name:      document.getElementById('proc-name')    ? document.getElementById('proc-name').value    : '',
+    person:    document.getElementById('proc-person')  ? document.getElementById('proc-person').value  : '',
+    tool:      document.getElementById('proc-tool')    ? document.getElementById('proc-tool').value    : '',
+    handoff:   document.getElementById('proc-handoff') ? document.getElementById('proc-handoff').value : '',
+    desc:      document.getElementById('proc-desc')    ? document.getElementById('proc-desc').value    : '',
+    pdesc:     document.getElementById('proc-pdesc')   ? document.getElementById('proc-pdesc').value   : '',
+    integ:     document.getElementById('proc-integ')   ? document.getElementById('proc-integ').value   : '',
+    toolTypes: metaToolTypes.slice(),
+    painLevel: metaPainLevel
+  };
+}
+
+function applyMetaSnapshot(m) {
+  metaToolTypes = m.toolTypes ? m.toolTypes.slice() : [];
+  metaPainLevel = m.painLevel || '';
+  renderMeta();
+  function set(id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; }
+  set('proc-name',    m.name);
+  set('proc-person',  m.person);
+  set('proc-tool',    m.tool);
+  set('proc-handoff', m.handoff);
+  set('proc-desc',    m.desc);
+  set('proc-pdesc',   m.pdesc);
+  set('proc-integ',   m.integ);
+  syncMeta();
+}
+
+function saveProcess() {
+  var meta = getMetaSnapshot();
+  var defaultName = meta.name || 'My Process';
+  var saveName = prompt('Save process as:', defaultName);
+  if (saveName === null) return;
+  saveName = saveName.trim();
+  if (!saveName) { showToast('Please enter a name.'); return; }
+
+  var data = {
+    savedName: saveName,
+    savedAt:   new Date().toISOString(),
+    version:   1,
+    meta:      meta,
+    steps:     steps.slice()
+  };
+
+  var json     = JSON.stringify(data, null, 2);
+  var blob     = new Blob([json], {type: 'application/json'});
+  var url      = URL.createObjectURL(blob);
+  var filename = saveName.replace(/[^a-z0-9_\-\s]/gi, '_') + '.json';
+
+  var a = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+
+  showToast('✓ Saved as ' + filename);
+}
+
+function openLoadPanel() {
+  var input = document.createElement('input');
+  input.type   = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var data;
+      try { data = JSON.parse(ev.target.result); }
+      catch(err) { showToast('Invalid file — could not read JSON.'); return; }
+
+      if (!data.meta || !data.savedName) {
+        showToast('This file does not look like a saved process.');
+        return;
+      }
+      if (!confirm('Load "' + data.savedName + '"? Current work will be replaced.')) return;
+
+      steps = []; counter = 0;
+      if (data.meta) applyMetaSnapshot(data.meta);
+      if (data.steps && data.steps.length) {
+        for (var i = 0; i < data.steps.length; i++) addStep(data.steps[i]);
+      } else {
+        renderAll();
+      }
+      showToast('✓ Loaded: ' + data.savedName);
+    };
+    reader.onerror = function() { showToast('Could not read file.'); };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+renderAll();
+renderMeta();
+</script>
+</body>
+</html>
